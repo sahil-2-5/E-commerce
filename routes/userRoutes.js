@@ -1,29 +1,43 @@
 const express = require("express");
 const router = express.Router();
+const { AuthClientId } = require("../middlewares/authClientMiddleware");
 const { validateEmail } = require("../validators/userValidator");
-const { protect } = require("../middlewares/authMiddleware");
+
 const {
   sendOtp,
   verifyOtp,
-  addAddresses,
   logoutUser,
-  setDefaultAddress,
-  deleteAddress,
-  updateAddress,
-  getAddresses
 } = require("../controllers/userController");
 
-// Routes with `protect` middleware require a valid token
+const {
+  getAddresses,
+  addAddresses,
+  setDefaultAddress,
+  updateAddress,
+  deleteAddress,
+} = require("../controllers/addressController");
 
+const {
+  getAllProducts,
+  getProductById,
+} = require("../controllers/productController");
+
+// Routes with `AuthClientId` middleware require a valid token
+
+// User Routes
 router.post("/login/send-otp", validateEmail, sendOtp);
 router.post("/login/verify-otp", verifyOtp);
-router.post("/logout", protect, logoutUser); 
+router.post("/logout", AuthClientId, logoutUser);
 
-router.get("/addresses", protect, getAddresses); 
-router.post("/add-address", protect, addAddresses); 
-router.post("/set-default-address", protect, setDefaultAddress); 
-router.put("/update-address/:addressId", protect, updateAddress); 
-router.delete("/delete-address/:addressId", protect, deleteAddress); 
+// Address Routes
+router.get("/addresses", AuthClientId, getAddresses);
+router.post("/add-address", AuthClientId, addAddresses);
+router.post("/set-default-address", AuthClientId, setDefaultAddress);
+router.put("/update-address/:addressId", AuthClientId, updateAddress);
+router.delete("/delete-address/:addressId", AuthClientId, deleteAddress);
 
+// Product Routes
+router.get("/products", getAllProducts);
+router.get("/product/:id", getProductById);
 
 module.exports = router;

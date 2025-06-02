@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', userRoutes);
+app.use('/admin', adminRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
