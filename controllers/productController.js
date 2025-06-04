@@ -1,25 +1,32 @@
 const Product = require("../models/Product");
+const { v4: uuidv4 } = require("uuid");
+const uploadToCloudinary = require("../uploads/cloudinaryStorage");
 
 exports.addProduct = async (req, res) => {
   try {
-    const imageUrls = req.files.map((file) => file.path);
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: 'No images uploaded' });
+    }
+
+    const imageUrls = [];
+    for (const file of req.files) {
+      const imageData = await uploadToCloudinary(file.buffer, 'products');
+      imageUrls.push(imageData);
+    }
+
+    const description = req.body.description ? JSON.parse(req.body.description) : {};
+
     const productData = {
       ...req.body,
       images: imageUrls,
-      user: req.user._id,
+      description,
+      user: req.admin._id,
     };
+
     const product = await Product.create(productData);
-    res.status(201).json({
-      success: true,
-      message: "Product added successfully",
-      product,
-    });
+    res.status(201).json({ success: true, message: 'Product added successfully', product });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error adding product",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Error adding product', error: error.message });
   }
 };
 
@@ -63,17 +70,20 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let imageUrls = [];
+    let imageObjects = [];
     if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map(file => file.path); 
+      for (const file of req.files) {
+        const url = await uploadToCloudinary(file.buffer, "products");
+        imageObjects.push({ id: uuidv4(), url });
+      }
     }
 
     const updatedData = {
       ...req.body,
     };
 
-    if (imageUrls.length > 0) {
-      updatedData.images = imageUrls;
+    if (imageObjects.length > 0) {
+      updatedData.images = imageObjects;
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
@@ -85,12 +95,71 @@ exports.updateProduct = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
-      product: updatedProduct
+      product: updatedProduct,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.updateSingleImage = async (req, res) => {
+  try {
+    const { productId, imageId } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image uploaded" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const imageIndex = product.images.findIndex(img => img.id === imageId);
+    if (imageIndex === -1) {
+      return res.status(404).json({ success: false, message: "Image not found in product" });
+    }
+
+    // Upload new image to Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.buffer, "products");
+
+    // Extract URL safely depending on what uploadToCloudinary returns
+    let newUrl = "";
+    if (typeof uploadResult === "string") {
+      newUrl = uploadResult;
+    } else if (uploadResult && typeof uploadResult.url === "string") {
+      newUrl = uploadResult.url;
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Invalid upload result from Cloudinary",
+      });
+    }
+
+    const newImage = {
+      id: uuidv4(),
+      url: newUrl,
+    };
+
+    // Replace old image
+    product.images[imageIndex] = newImage;
+
+    const updatedProduct = await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Image updated successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating image",
+      error: error.message,
+    });
+  }
+};
+
 
 exports.deleteProduct = async (req, res) => {
   try {

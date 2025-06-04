@@ -1,22 +1,24 @@
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
+const { v4: uuidv4 } = require('uuid');
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'products',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
-    transformation: [
-    {
-      width: 400,
-      height: 600,
-      crop: 'fill',        // Ensures the image fills the dimensions
-      gravity: 'auto',     // Auto-detects the main subject (face/body)
-      quality: 'auto',     // Automatically adjusts image quality
-      fetch_format: 'auto' // Optimizes image format (webp, etc.)
-    }
-  ],
-  },
-});
+const uploadToCloudinary = (buffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const uniqueId = uuidv4();
 
-module.exports = storage;
+    const stream = cloudinary.uploader.upload_stream({
+      folder,
+      public_id: uniqueId,
+      transformation: [
+        { width: 400, height: 600, crop: 'fill', gravity: 'auto', quality: 'auto', fetch_format: 'auto' }
+      ]
+    }, (error, result) => {
+      if (error) return reject(error);
+      resolve({ id: uniqueId, url: result.secure_url });
+    });
+
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+};
+
+module.exports = uploadToCloudinary;

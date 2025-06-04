@@ -1,42 +1,40 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
-const descriptionSchema = new mongoose.Schema({
-  information: { type: String },
-  fabric: { type: String },
-  style: { type: String },
-  length: { type: String },
-  width: { type: String },
-}, { _id: false });
+const imageSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true, unique: true },
+    url: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const descriptionSchema = new mongoose.Schema(
+  {
+    information: { type: String },
+    fabric: { type: String },
+    style: { type: String },
+    length: { type: String },
+    width: { type: String },
+  },
+  { _id: false }
+);
 
 const productSchema = new mongoose.Schema({
-  images: [{ 
-     type: String,
-     required: true 
-   }],
-  title: { 
-    type: String, 
-    required: true 
+  images: {
+    type: [imageSchema],
+    required: true,
   },
-  type: {
-    type: String,
-    required: true
-  },
-  price: { 
-    type: Number, 
-    required: true 
-  },
-  sellingPrice: { 
-    type: Number, 
-    required: true 
-  },
+  title: { type: String, required: true },
+  type: { type: String, required: true },
+  price: { type: Number, required: true },
+  sellingPrice: { type: Number, required: true },
   description: {
     type: descriptionSchema,
-    required: true
+    required: true,
   },
-  offerPercentage: {
-    type: Number,
-    required: true
-  }
+  offerPercentage: { type: Number, required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
 });
 
 module.exports = mongoose.model("Product", productSchema);

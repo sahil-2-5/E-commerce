@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
 exports.AuthAdminId = async (req, res, next) => {
-  const token = req.cookies.adminToken;
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token' });

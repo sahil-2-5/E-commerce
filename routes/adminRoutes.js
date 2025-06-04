@@ -10,14 +10,11 @@ const {
 } = require("../controllers/adminController");
 
 const {
-  getAddresses,
-} = require("../controllers/addressController");
-
-const {
   addProduct,
   getAllProducts,
   getProductById,
   updateProduct,
+  updateSingleImage,
   deleteProduct,
 } = require("../controllers/productController");
 
@@ -28,14 +25,12 @@ router.post("/login/send-otp", sendOtp);
 router.post("/login/verify-otp", verifyOtp);
 router.post("/logout", AuthAdminId, logoutAdmin);
 
-// Address Routes
-router.get("/addresses", AuthAdminId, getAddresses);
-
 // Product Routes
 router.post("/add-product", AuthAdminId, upload.array("images"), addProduct);
 router.get("/products", getAllProducts);
 router.get("/product/:id", getProductById);
 router.put("/update-product/:id", AuthAdminId, upload.array("images"), updateProduct);
+router.put("/update-image/:productId/:imageId", AuthAdminId, upload.single("image"), updateSingleImage);
 router.delete("/delete-product/:id", AuthAdminId, deleteProduct);
 
 module.exports = router;

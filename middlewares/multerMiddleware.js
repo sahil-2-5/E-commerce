@@ -1,5 +1,6 @@
 const multer = require('multer');
-const {storage} = require('../uploads/cloudinaryStorage');
+
+const storage = multer.memoryStorage(); // Store files in memory
 
 const upload = multer({ storage });
 

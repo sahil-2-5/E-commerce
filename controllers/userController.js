@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const generateClientToken = require("../utils/generateClientToken");
-const sendClientdOTP = require("../utils/sendOTP");
+const sendClientdOTP = require("../utils/sendClientOTP");
 
 exports.sendOtp = async (req, res) => {
   const { email } = req.body;

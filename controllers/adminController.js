@@ -15,6 +15,7 @@ exports.sendOtp = async (req, res) => {
   await admin.save();
 
   await sendAdminOTP(email, otp);
+  
   res.status(200).json({
     success: true,
     message: "OTP sent to your email",
