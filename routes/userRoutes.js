@@ -36,7 +36,7 @@ const {
   getWishlist,
   removeFromWishlist,
   clearWishlist
-} = require("../controllers/WishlistController");
+} = require("../controllers/wishlistController");
 
 // Routes with `AuthClientId` middleware require a valid token
 

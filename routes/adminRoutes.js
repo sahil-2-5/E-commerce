@@ -18,6 +18,11 @@ const {
   deleteProduct,
 } = require("../controllers/productController");
 
+const {
+  createOrder ,
+  verifyPayment
+} = require("../controllers/orderController");
+
 // Routes with `AuthAdminId` middleware require a valid token
 
 // Admin Routes
@@ -32,5 +37,9 @@ router.get("/product/:id", getProductById);
 router.put("/update-product/:id", AuthAdminId,upload.none(), updateProduct);
 router.put("/update-image/:productId/:imageId", AuthAdminId, upload.single("image"), updateSingleImage);
 router.delete("/delete-product/:id", AuthAdminId, deleteProduct);
+
+// Order Routes
+router.post("/create-order", AuthAdminId, createOrder);
+router.post("/verify-payment", AuthAdminId, verifyPayment);
 
 module.exports = router;
