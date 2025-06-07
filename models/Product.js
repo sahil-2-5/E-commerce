@@ -20,6 +20,24 @@ const descriptionSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const filterSchema = new mongoose.Schema(
+  {
+    material: {
+      type: String, // Silk, Cotton, Georgette, etc.
+      required: true,
+    },
+    occasion: {
+      type: String, // Wedding, Party, Casual, etc.
+      required: true,
+    },
+    color: {
+      type: String, // e.g., Red, Blue, Green, etc.
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema({
   images: {
     type: [imageSchema],
@@ -33,8 +51,21 @@ const productSchema = new mongoose.Schema({
     type: descriptionSchema,
     required: true,
   },
+  filter: {
+    type: filterSchema,
+    required: true,
+  },
   offerPercentage: { type: Number, required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
+  availableQuantity: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  inStock: {
+    type: Boolean,
+    default: true,
+  },
+  admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
 });
 
 module.exports = mongoose.model("Product", productSchema);

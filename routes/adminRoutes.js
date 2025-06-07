@@ -29,7 +29,7 @@ router.post("/logout", AuthAdminId, logoutAdmin);
 router.post("/add-product", AuthAdminId, upload.array("images"), addProduct);
 router.get("/products", getAllProducts);
 router.get("/product/:id", getProductById);
-router.put("/update-product/:id", AuthAdminId, upload.array("images"), updateProduct);
+router.put("/update-product/:id", AuthAdminId,upload.none(), updateProduct);
 router.put("/update-image/:productId/:imageId", AuthAdminId, upload.single("image"), updateSingleImage);
 router.delete("/delete-product/:id", AuthAdminId, deleteProduct);
 

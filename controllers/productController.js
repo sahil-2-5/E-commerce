@@ -5,28 +5,51 @@ const uploadToCloudinary = require("../uploads/cloudinaryStorage");
 exports.addProduct = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: 'No images uploaded' });
+      return res
+        .status(400)
+        .json({ success: false, message: "No images uploaded" });
     }
 
     const imageUrls = [];
     for (const file of req.files) {
-      const imageData = await uploadToCloudinary(file.buffer, 'products');
-      imageUrls.push(imageData);
+      const imageData = await uploadToCloudinary(file.buffer, "products");
+
+      imageUrls.push({
+        id: imageData.public_id || imageData.id || uuidv4(),
+        url: imageData.secure_url || imageData.url,
+      });
     }
 
-    const description = req.body.description ? JSON.parse(req.body.description) : {};
+    const description = req.body.description
+      ? JSON.parse(req.body.description)
+      : {};
+
+    const filter = req.body.filter ? JSON.parse(req.body.filter) : null;
+    if (!filter) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Filter data is required" });
+    }
 
     const productData = {
       ...req.body,
       images: imageUrls,
       description,
+      filter,
       user: req.admin._id,
+      inStock: req.body.inStock !== undefined ? req.body.inStock : true,
     };
 
     const product = await Product.create(productData);
-    res.status(201).json({ success: true, message: 'Product added successfully', product });
+    res
+      .status(201)
+      .json({ success: true, message: "Product added successfully", product });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error adding product', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error adding product",
+      error: error.message,
+    });
   }
 };
 
@@ -70,26 +93,38 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let imageObjects = [];
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const url = await uploadToCloudinary(file.buffer, "products");
-        imageObjects.push({ id: uuidv4(), url });
+    // Parse description and filter if sent as JSON strings
+    if (req.body.description && typeof req.body.description === "string") {
+      try {
+        req.body.description = JSON.parse(req.body.description);
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid JSON in description",
+        });
       }
     }
 
-    const updatedData = {
-      ...req.body,
-    };
-
-    if (imageObjects.length > 0) {
-      updatedData.images = imageObjects;
+    // Parse filter if it's a string
+    if (req.body.filter && typeof req.body.filter === "string") {
+      try {
+        req.body.filter = JSON.parse(req.body.filter);
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid JSON in filter",
+        });
+      }
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!updatedProduct) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     res.status(200).json({
@@ -107,17 +142,23 @@ exports.updateSingleImage = async (req, res) => {
     const { productId, imageId } = req.params;
 
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "No image uploaded" });
+      return res
+        .status(400)
+        .json({ success: false, message: "No image uploaded" });
     }
 
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
-    const imageIndex = product.images.findIndex(img => img.id === imageId);
+    const imageIndex = product.images.findIndex((img) => img.id === imageId);
     if (imageIndex === -1) {
-      return res.status(404).json({ success: false, message: "Image not found in product" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Image not found in product" });
     }
 
     // Upload new image to Cloudinary
@@ -159,7 +200,6 @@ exports.updateSingleImage = async (req, res) => {
     });
   }
 };
-
 
 exports.deleteProduct = async (req, res) => {
   try {
