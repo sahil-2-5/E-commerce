@@ -3,11 +3,21 @@ const router = express.Router();
 const { AuthClientId } = require("../middlewares/authClientMiddleware");
 const { validateEmail } = require("../validators/userValidator");
 
+// const {
+//   sendOtp,
+//   verifyOtp,
+//   logoutUser,
+// } = require("../controllers/userController");
+
 const {
-  sendOtp,
-  verifyOtp,
-  logoutUser,
-} = require("../controllers/userController");
+  signup,
+  verifySignupOtp,
+  login,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword,
+  logoutUser
+} = require("../controllers/userController"); 
 
 const {
   getAddresses,
@@ -41,8 +51,17 @@ const {
 // Routes with `AuthClientId` middleware require a valid token
 
 // User Routes
-router.post("/login/send-otp", validateEmail, sendOtp);
-router.post("/login/verify-otp", verifyOtp);
+// router.post("/login/send-otp", validateEmail, sendOtp);
+// router.post("/login/verify-otp", verifyOtp);
+//router.post("/logout", AuthClientId, logoutUser);
+
+// User Routes
+router.post("/signup", signup);
+router.post("/signup/verify-otp", verifySignupOtp);
+router.post("/login", login);
+router.post("/forgot-password", validateEmail, forgotPassword);
+router.post("/reset-password/verify-otp", verifyResetOtp);
+router.post("/reset-password", resetPassword);
 router.post("/logout", AuthClientId, logoutUser);
 
 // Address Routes
